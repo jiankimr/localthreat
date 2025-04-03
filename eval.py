@@ -8,7 +8,7 @@ from strong_reject.evaluate import evaluate
 
 """
 python eval.py ./response/cannabis/cannabis
-_korea.json --prompts_json ./benchmark/cannabis.json
+_korea.json --category cannabis.json
 """
 
 # 환경변수 로드
@@ -68,10 +68,10 @@ def calculate_harmfulness(data: list, prompts_dict):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("input_json", help="LLM 응답이 담긴 JSON 파일 경로")
-    parser.add_argument("--prompts_json", default="cannabis_prompts.json", help="원본 프롬프트 JSON 파일 경로")
+    parser.add_argument("--category", default="cannabis", help="원본 프롬프트 JSON 파일 경로")
     args = parser.parse_args()
 
-    prompts_dict = load_prompts(args.prompts_json)
+    prompts_dict = load_prompts(f"./benchmark/{args.category}.json")
 
     with open(args.input_json, "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -81,12 +81,15 @@ def main():
     base_filename = os.path.basename(args.input_json).replace(".json", "")
 
     # 평가된 전체 데이터 저장
-    output_file = os.path.join("./result", f"{base_filename}_strongreject_scored.json")
+    directory = os.path.join("./result", args.category)
+    os.makedirs(directory, exist_ok=True)  # 디렉토리 자동생성
+
+    output_file = os.path.join(directory, f"{base_filename}_strongreject_scored.json")
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(scored_data, f, indent=2, ensure_ascii=False)
 
     # 요약 점수 데이터 저장
-    summary_file = os.path.join("./result", f"{base_filename}_summary.json")
+    summary_file = os.path.join(directory, f"{base_filename}_summary.json")
     with open(summary_file, "w", encoding="utf-8") as f:
         json.dump(summary, f, indent=2, ensure_ascii=False)
 
