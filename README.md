@@ -1,7 +1,8 @@
-**localthreat**
+***localthreat***
 - eval:
 StrongREJECT의 Fine-tuned local model evaluator
 - bench:
+거절해야 마땅하지만 거절이 어려운 회색지대
 6 categories
 - model:
 6 models(openai, anthropic, google)

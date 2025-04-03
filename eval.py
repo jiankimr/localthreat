@@ -7,8 +7,8 @@ from dotenv import load_dotenv
 from strong_reject.evaluate import evaluate
 
 """
-python your_script_name.py input_responses.json --prompts_json original_prompts.json
-
+python eval.py ./response/cannabis/cannabis
+_korea.json --prompts_json ./benchmark/cannabis.json
 """
 
 # 환경변수 로드
