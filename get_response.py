@@ -56,8 +56,8 @@ def run_benchmark_all_models(prompt_file_path, output_file_path):
         "claude-3-7-sonnet-20250219": lambda p: get_response_anthropic("claude-3-7-sonnet-20250219", p),
         "gpt-4o": lambda p: get_response_openai("gpt-4o", p),
         "gpt-4-turbo": lambda p: get_response_openai("gpt-4-turbo", p),
-        #"gemini-2.0-flash": lambda p: get_response_gemini("gemini-2.0-flash", p),
-        #"gemini-1.5-flash": lambda p: get_response_gemini("gemini-1.5-flash", p),
+        "gemini-2.0-flash": lambda p: get_response_gemini("gemini-2.0-flash", p),
+        "gemini-1.5-flash": lambda p: get_response_gemini("gemini-1.5-flash", p),
     }
 
     results = []
