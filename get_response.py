@@ -16,8 +16,11 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 # Configure API clients
 anthropic_client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+#anthropic_client = anthropic.Client(api_key=ANTHROPIC_API_KEY)
+
 genai.configure(api_key=GEMINI_API_KEY)
 client = OpenAI(api_key=OPENAI_API_KEY)
+#openai.api_key=OPENAI_API_KEY
 
 os.makedirs("./response", exist_ok=True)
 
@@ -32,6 +35,7 @@ def get_response_openai(model_name, prompt):
     return response.choices[0].message.content
 
 
+
 def get_response_anthropic(model_name, prompt):
     message = anthropic_client.messages.create(
         model=model_name,
@@ -39,11 +43,32 @@ def get_response_anthropic(model_name, prompt):
         messages=[{"role": "user", "content": prompt}]
     )
     return message.content[0].text
+# def get_response_anthropic(model_name, prompt):
+#     # 권장된 방식: HUMAN_PROMPT, AI_PROMPT를 섞어서 하나의 prompt로 전달
+#     # Claude는 Conversation 스타일을 고려하기 때문
+#     merged_prompt = f"{anthropic.HUMAN_PROMPT}{prompt}{anthropic.AI_PROMPT}"
+
+#     resp = anthropic_client.completions.create(
+#         model=model_name,
+#         prompt=merged_prompt,
+#         max_tokens_to_sample=512,
+#         temperature=0.7
+#     )
+#     return resp.completion
+
 
 def get_response_gemini(model_name, prompt):
     model = genai.GenerativeModel(model_name)
     response = model.generate_content(prompt)
     return response.text
+# def get_response_gemini(model_name, prompt):
+#     response = genai.generate_text(
+#         model=model_name,    # 예: "models/text-bison-001"
+#         prompt=prompt,
+#         temperature=0.7,
+#         max_output_tokens=512,
+#     )
+#     return response.generations[0].text
 
 # Main benchmark function
 def run_benchmark_all_models(prompt_file_path, output_file_path):
@@ -52,10 +77,13 @@ def run_benchmark_all_models(prompt_file_path, output_file_path):
         prompts_data = json.load(f)
 
     models = {
-        "claude-3-5-haiku-20241022": lambda p: get_response_anthropic("claude-3-5-haiku-20241022", p),
         "claude-3-7-sonnet-20250219": lambda p: get_response_anthropic("claude-3-7-sonnet-20250219", p),
+        "claude-3-5-haiku-20241022": lambda p: get_response_anthropic("claude-3-5-haiku-20241022", p),
+        "claude-3-opus-20240229": lambda p: get_response_anthropic("claude-3-opus-20240229", p),
         "gpt-4o": lambda p: get_response_openai("gpt-4o", p),
         "gpt-4-turbo": lambda p: get_response_openai("gpt-4-turbo", p),
+        "gpt-3.5-turbo": lambda p: get_response_openai("gpt-3.5-turbo", p), 
+        "gemini-2.5-pro-exp-03-25": lambda p: get_response_gemini("gemini-2.5-pro-exp-03-25", p),
         "gemini-2.0-flash": lambda p: get_response_gemini("gemini-2.0-flash", p),
         "gemini-1.5-flash": lambda p: get_response_gemini("gemini-1.5-flash", p),
     }
