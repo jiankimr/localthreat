@@ -6,6 +6,8 @@ import google.generativeai as genai
 from tqdm import tqdm
 from dotenv import load_dotenv
 from openai import OpenAI
+from ai21 import AI21Client
+from ai21.models.chat import ChatMessage
 
 # Load environment variables from .env
 load_dotenv()
@@ -13,6 +15,7 @@ load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+AI21_API_KEY = os.getenv('AI21_API_KEY')
 
 # Configure API clients
 anthropic_client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -21,6 +24,7 @@ anthropic_client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 genai.configure(api_key=GEMINI_API_KEY)
 client = OpenAI(api_key=OPENAI_API_KEY)
 #openai.api_key=OPENAI_API_KEY
+ai21_clinet = AI21Client(AI21_API_KEY)
 
 os.makedirs("./response", exist_ok=True)
 
@@ -31,6 +35,8 @@ def get_response_openai(model_name, prompt):
         messages=[{"role": "user", "content": prompt}],
         temperature=0.7,
         max_tokens=512
+        #request_timeout=300  # 최대 대기 시간을 30초로 설정
+
     )
     return response.choices[0].message.content
 
@@ -40,21 +46,26 @@ def get_response_anthropic(model_name, prompt):
     message = anthropic_client.messages.create(
         model=model_name,
         max_tokens=512,
-        messages=[{"role": "user", "content": prompt}]
+        messages=[{"role": "user", "content": prompt}],
+        timeout=300  # 지원되지 않는다면 try/except로 처리
+
     )
     return message.content[0].text
-# def get_response_anthropic(model_name, prompt):
-#     # 권장된 방식: HUMAN_PROMPT, AI_PROMPT를 섞어서 하나의 prompt로 전달
-#     # Claude는 Conversation 스타일을 고려하기 때문
-#     merged_prompt = f"{anthropic.HUMAN_PROMPT}{prompt}{anthropic.AI_PROMPT}"
 
-#     resp = anthropic_client.completions.create(
+#이걸로 바꿔서 다시 해보기. 더 공식적이라고 함.
+# def get_response_anthropic(model_name, prompt):
+#     # Anthropic API의 경우 프롬프트에 대화 내역을 포함시키는 방식이 일반적입니다.
+#     # 예시: "Human: {prompt}\n\nAssistant:" 와 같이 구성
+#     formatted_prompt = f"Human: {prompt}\n\nAssistant:"
+#     response = anthropic_client.completion(
 #         model=model_name,
-#         prompt=merged_prompt,
+#         prompt=formatted_prompt,
 #         max_tokens_to_sample=512,
 #         temperature=0.7
 #     )
-#     return resp.completion
+#     # 응답 객체의 구조는 공식 문서를 참고하여 추출
+#     return response.completion
+
 
 
 def get_response_gemini(model_name, prompt):
@@ -70,6 +81,13 @@ def get_response_gemini(model_name, prompt):
 #     )
 #     return response.generations[0].text
 
+def get_response_ai21(model_name, prompt):
+    response = client.chat.completions.create(
+        model=model_name,
+        messages=[ChatMessage(role='user', content=prompt)]
+    )
+    return response
+
 # Main benchmark function
 def run_benchmark_all_models(prompt_file_path, output_file_path):
     # Load prompts
@@ -83,9 +101,12 @@ def run_benchmark_all_models(prompt_file_path, output_file_path):
         "gpt-4o": lambda p: get_response_openai("gpt-4o", p),
         "gpt-4-turbo": lambda p: get_response_openai("gpt-4-turbo", p),
         "gpt-3.5-turbo": lambda p: get_response_openai("gpt-3.5-turbo", p), 
-        "gemini-2.5-pro-exp-03-25": lambda p: get_response_gemini("gemini-2.5-pro-exp-03-25", p),
-        "gemini-2.0-flash": lambda p: get_response_gemini("gemini-2.0-flash", p),
-        "gemini-1.5-flash": lambda p: get_response_gemini("gemini-1.5-flash", p),
+        #"jamba-large-1.6-2025-03" : lambda p: get_response_ai21("jamba-large-1.6", p ),
+        #"jamba-mini-1.6-2025-03" : lambda p: get_response_ai21("jamba-mini-1.6", p )
+        #"gemini-2.5-pro-exp-03-25": lambda p: get_response_gemini("gemini-2.5-pro-exp-03-25", p),
+        #"gemini-2.0-flash": lambda p: get_response_gemini("gemini-2.0-flash", p),
+        #"gemini-1.5-flash": lambda p: get_response_gemini("gemini-1.5-flash", p),
+        #"gemini-1.5-flash-8b": lambda p: get_response_gemini("gemini-1.5-flash-8b", p),
     }
 
     results = []
@@ -94,7 +115,7 @@ def run_benchmark_all_models(prompt_file_path, output_file_path):
         prompt_id = item.get("prompt_id")
         prompt_text = item.get("prompt_text")
 
-        for model_name, get_response in models.items():
+        for model_name, get_response in tqdm (models.items()):
             try:
                 reply = get_response(prompt_text)
 
