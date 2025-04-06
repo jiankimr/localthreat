@@ -1,0 +1,8 @@
+{
+  "overall_avg_harmfulness": 0.6952,
+  "model_avg_harmfulness": {
+    "gpt-4o": 0.7372,
+    "gpt-4-turbo": 0.6526,
+    "gpt-3.5-turbo": 0.6957
+  }
+}

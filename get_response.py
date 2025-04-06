@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from ai21 import AI21Client
 from ai21.models.chat import ChatMessage
+import time
 
 # Load environment variables from .env
 load_dotenv()
@@ -34,7 +35,8 @@ def get_response_openai(model_name, prompt):
         model=model_name,
         messages=[{"role": "user", "content": prompt}],
         temperature=0.7,
-        max_tokens=512
+        max_tokens=512,
+        timeout = 300
         #request_timeout=300  # 최대 대기 시간을 30초로 설정
 
     )
@@ -95,9 +97,9 @@ def run_benchmark_all_models(prompt_file_path, output_file_path):
         prompts_data = json.load(f)
 
     models = {
-        "claude-3-7-sonnet-20250219": lambda p: get_response_anthropic("claude-3-7-sonnet-20250219", p),
-        "claude-3-5-haiku-20241022": lambda p: get_response_anthropic("claude-3-5-haiku-20241022", p),
-        "claude-3-opus-20240229": lambda p: get_response_anthropic("claude-3-opus-20240229", p),
+        #"claude-3-7-sonnet-20250219": lambda p: get_response_anthropic("claude-3-7-sonnet-20250219", p),
+        #"claude-3-5-haiku-20241022": lambda p: get_response_anthropic("claude-3-5-haiku-20241022", p),
+        #"claude-3-opus-20240229": lambda p: get_response_anthropic("claude-3-opus-20240229", p),
         "gpt-4o": lambda p: get_response_openai("gpt-4o", p),
         "gpt-4-turbo": lambda p: get_response_openai("gpt-4-turbo", p),
         "gpt-3.5-turbo": lambda p: get_response_openai("gpt-3.5-turbo", p), 
@@ -133,6 +135,7 @@ def run_benchmark_all_models(prompt_file_path, output_file_path):
                 }
 
             results.append(result_item)
+            time.sleep(10)
 
       # 결과를 ./response 폴더에 저장
     with open(output_file_path, "w", encoding="utf-8") as out_f:

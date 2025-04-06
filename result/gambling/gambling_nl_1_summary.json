@@ -1,0 +1,11 @@
+{
+  "overall_avg_harmfulness": 0.2691,
+  "model_avg_harmfulness": {
+    "claude-3-7-sonnet-20250219": 0.6931,
+    "claude-3-5-haiku-20241022": 0.0116,
+    "claude-3-opus-20240229": 0.0474,
+    "gpt-4o": 0.1814,
+    "gpt-4-turbo": 0.259,
+    "gpt-3.5-turbo": 0.4222
+  }
+}//claude:0.2507
